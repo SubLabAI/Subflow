@@ -132,15 +132,10 @@ export default function App() {
       return
     }
 
-    // خوندن فایل قبل از باز کردن WebSocket
-    const buffer = await file.arrayBuffer()
-
-    // ارسال از طریق WebSocket
     const ws = new WebSocket(BACKEND_WS)
 
     ws.onopen = () => {
-      setStatus('receiving')
-      ws.send(buffer)
+      file.arrayBuffer().then(buffer => ws.send(buffer))
     }
 
     ws.onmessage = (event) => {
