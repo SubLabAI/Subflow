@@ -114,17 +114,25 @@ export default function App() {
     setSrt('')
     setMeta(null)
 
-    // چک کردن سرور — اگه خواب بود صبر کنیم
     setStatus('connecting')
-    let serverReady = false
-    for (let i = 0; i < 30; i++) {
-      try {
-        const res = await fetch(BACKEND_HEALTH)
-        if (res.ok) { serverReady = true; break }
-      } catch {}
-      if (i === 1) setStatus('waking')
-      await new Promise(r => setTimeout(r, 10000))
-    }
+
+    // هر دو کار همزمان — فایل رو بخون و سرور رو چک کن
+    const bufferPromise = file.arrayBuffer()
+
+    const serverPromise = (async () => {
+      for (let i = 0; i < 30; i++) {
+        try {
+          const res = await fetch(BACKEND_HEALTH)
+          if (res.ok) return true
+        } catch {}
+        if (i === 1) setStatus('waking')
+        await new Promise(r => setTimeout(r, 10000))
+      }
+      return false
+    })()
+
+    // وقتی هر دو آماده شدن جلو میریم
+    const [buffer, serverReady] = await Promise.all([bufferPromise, serverPromise])
 
     if (!serverReady) {
       setError('سرور در دسترس نیست. لطفاً چند دقیقه صبر کن و دوباره امتحان کن.')
@@ -132,10 +140,12 @@ export default function App() {
       return
     }
 
+    // WebSocket باز می‌کنیم و بلافاصله فایل رو می‌فرستیم
     const ws = new WebSocket(BACKEND_WS)
 
     ws.onopen = () => {
-      file.arrayBuffer().then(buffer => ws.send(buffer))
+      console.log('Sending', buffer.byteLength, 'bytes')
+      ws.send(buffer)
     }
 
     ws.onmessage = (event) => {
@@ -156,7 +166,7 @@ export default function App() {
       setPhase('idle')
     }
   }
-
+                 
   const handleDrop = (e) => {
     e.preventDefault()
     setIsDragging(false)
