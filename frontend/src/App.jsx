@@ -140,16 +140,17 @@ export default function App() {
       return
     }
 
-    // WebSocket باز می‌کنیم و بلافاصله فایل رو می‌فرستیم
+  // WebSocket باز می‌کنیم و بلافاصله فایل رو می‌فرستیم
     const ws = new WebSocket(BACKEND_WS)
 
     ws.onopen = () => {
-      console.log('Sending', buffer.byteLength, 'bytes')
+      console.log('WebSocket open, sending', buffer.byteLength, 'bytes')
       ws.send(buffer)
     }
 
     ws.onmessage = (event) => {
       const msg = JSON.parse(event.data)
+      console.log('Message from server:', msg.status)
       setStatus(msg.status)
       if (msg.status === 'done') {
         setSrt(msg.srt)
@@ -161,11 +162,15 @@ export default function App() {
       }
     }
 
-    ws.onerror = () => {
+    ws.onerror = (err) => {
+      console.error('WebSocket error:', err)
       setError('خطای اتصال به سرور.')
       setPhase('idle')
     }
-  }
+
+    ws.onclose = (event) => {
+      console.log('WebSocket closed:', event.code, event.reason)
+    }
                  
   const handleDrop = (e) => {
     e.preventDefault()
