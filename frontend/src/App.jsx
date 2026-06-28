@@ -140,7 +140,7 @@ export default function App() {
       return
     }
 
-  // WebSocket باز می‌کنیم و بلافاصله فایل رو می‌فرستیم
+    // WebSocket باز می‌کنیم و بلافاصله فایل رو می‌فرستیم
     const ws = new WebSocket(BACKEND_WS)
 
     ws.onopen = () => {
@@ -171,7 +171,8 @@ export default function App() {
     ws.onclose = (event) => {
       console.log('WebSocket closed:', event.code, event.reason)
     }
-                 
+  }
+
   const handleDrop = (e) => {
     e.preventDefault()
     setIsDragging(false)
@@ -307,4 +308,4 @@ export default function App() {
       </footer>
     </div>
   )
-}
+ }
